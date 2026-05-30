@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafeTag India | Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --red: #e02020; --red-dark: #a51515; --red-glow: rgba(224,32,32,0.15);
+      --bg: #0a0a0f; --surface: #13131a; --surface2: #1c1c27;
+      --border: rgba(255,255,255,0.07); --text: #f0f0f5; --muted: #6b6b80;
+      --green: #22c55e; --amber: #f59e0b; --blue: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #0f0505, #1a0808);
+      border-bottom: 1px solid rgba(224,32,32,0.3);
+      padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-icon { width: 38px; height: 38px; background: var(--red); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; }
+    .header-sub { font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 3px; font-weight: 700; text-transform: uppercase; }
+    .admin-badge { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .logout-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+    .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* LAYOUT */
+    .layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 66px); }
+
+    /* SIDEBAR */
+    .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; gap: 4px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 10px; cursor: pointer;
+      font-size: 13px; font-weight: 500; color: var(--muted);
+      transition: all 0.2s; border: none; background: none;
+      font-family: 'DM Sans', sans-serif; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: rgba(224,32,32,0.1); color: var(--red); font-weight: 700; }
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .nav-divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+    /* MAIN */
+    .main { padding: 28px; overflow-y: auto; }
+
+    /* PANELS */
+    .panel { display: none; animation: fadeIn 0.3s ease; }
+    .panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .panel-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; margin-bottom: 6px; }
+    .panel-sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+    .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 1px; }
+    .stat-card.red { border-top: 2px solid var(--red); }
+    .stat-card.green { border-top: 2px solid var(--green); }
+    .stat-card.amber { border-top: 2px solid var(--amber); }
+    .stat-card.blue { border-top: 2px solid var(--blue); }
+    .stat-card.red .stat-value { color: var(--red); }
+    .stat-card.green .stat-value { color: var(--green); }
+    .stat-card.amber .stat-value { color: var(--amber); }
+    .stat-card.blue .stat-value { color: var(--blue); }
+
+    /* CARDS */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+    .card-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1.5px; margin-bottom: 16px; color: var(--muted); }
+
+    /* FORM ELEMENTS */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+    .field input, .field select {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 14px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .field input:focus, .field select:focus { border-color: rgba(224,32,32,0.4); }
+    .field select option { background: #1c1c27; }
+
+    /* BUTTONS */
+    .btn {
+      padding: 11px 22px; border-radius: 10px; font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      border: none; transition: transform 0.15s, opacity 0.15s;
+      letter-spacing: 0.5px;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--red); color: #fff; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-green { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+    .btn-sm { padding: 6px 14px; font-size: 11px; border-radius: 7px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* TABLE */
+    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: var(--surface2); padding: 12px 16px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+    td { padding: 12px 16px; border-top: 1px solid var(--border); vertical-align: middle; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .badge-green { background: rgba(34,197,94,0.1); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+    .badge-muted { background: rgba(107,107,128,0.15); color: var(--muted); border: 1px solid var(--border); }
+    .badge-red { background: rgba(224,32,32,0.1); color: var(--red); border: 1px solid rgba(224,32,32,0.2); }
+
+    /* SEARCH */
+    .search-row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .search-input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 16px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none;
+    }
+    .search-input:focus { border-color: rgba(224,32,32,0.4); }
+
+    /* GENERATE RESULT */
+    .gen-result { background: var(--surface2); border-radius: 12px; padding: 16px; margin-top: 16px; display: none; }
+    .gen-tags-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; max-height: 300px; overflow-y: auto; }
+    .gen-tag-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 12px; }
+    .gen-tag-id { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--red); }
+    .gen-tag-code { color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+    /* LOGIN */
+    .login-overlay {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; align-items: center; justify-content: center; z-index: 999;
+    }
+    .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 48px 40px; width: 360px; text-align: center; }
+    .login-card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 2px; margin-bottom: 6px; }
+    .login-card p { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+    .login-field { margin-bottom: 14px; text-align: left; }
+    .login-field label { display: block; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .login-field input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+    }
+    .login-field input:focus { border-color: rgba(224,32,32,0.4); }
+    .login-btn { width: 100%; background: var(--red); color: #fff; border: none; padding: 14px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .login-err { color: #ff6b6b; font-size: 12px; margin-top: 8px; display: none; }
+
+    .msg-bar { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 16px; display: none; }
+    .msg-bar.success { background: rgba(34,197,94,0.1); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+    .msg-bar.error { background: rgba(224,32,32,0.1); color: #ff6b6b; border: 1px solid rgba(224,32,32,0.2); }
+    .msg-bar.info { background: rgba(59,130,246,0.1); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+
+    .empty-state { text-align: center; padding: 48px; color: var(--muted); font-size: 14px; }
+
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div style="font-size:48px;margin-bottom:16px;">🔐</div>
+    <h2>Admin Access</h2>
+    <p>SafeTag India Control Panel</p>
+    <div class="login-field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="admin@safetagindia.com" />
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" />
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="login-btn" onclick="login()">Login to Admin Panel →</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-brand">
+    <div class="header-icon">🏥</div>
+    <div>
+      <div class="header-title">SafeTag India</div>
+      <div class="header-sub">Admin Control Panel</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="admin-badge">⚡ Admin</div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <div class="sidebar">
+    <button class="nav-item active" onclick="showPanel('dashboard', this)"><span class="nav-icon">📊</span> Dashboard</button>
+    <button class="nav-item" onclick="showPanel('generate', this)"><span class="nav-icon">🏷️</span> Generate Tags</button>
+    <button class="nav-item" onclick="showPanel('inventory', this)"><span class="nav-icon">📦</span> Inventory</button>
+    <div class="nav-divider"></div>
+    <button class="nav-item" onclick="showPanel('users', this)"><span class="nav-icon">👥</span> Registered Users</button>
+    <button class="nav-item" onclick="showPanel('export', this)"><span class="nav-icon">📥</span> Export QR Codes</button>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="panel-title">Dashboard</div>
+      <div class="panel-sub">Overview of all SafeTag operations</div>
+      <div class="stats-grid">
+        <div class="stat-card red"><div class="stat-label">Total Tags</div><div class="stat-value" id="statTotal">--</div></div>
+        <div class="stat-card green"><div class="stat-label">Activated</div><div class="stat-value" id="statActive">--</div></div>
+        <div class="stat-card amber"><div class="stat-label">Inactive</div><div class="stat-value" id="statInactive">--</div></div>
+        <div class="stat-card blue"><div class="stat-label">Activation %</div><div class="stat-value" id="statPct">--</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Blood Group Breakdown</div>
+        <div id="bloodBreakdown" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+          <div class="empty-state" style="grid-column:1/-1;">Loading...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recent Activations</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tag ID</th><th>Name</th><th>Blood</th><th>Email</th><th>Activated</th></tr></thead>
+            <tbody id="recentTable"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERATE -->
+    <div class="panel" id="panel-generate">
+      <div class="panel-title">Generate Tags</div>
+      <div class="panel-sub">Create new SafeTag inventory batches</div>
+      <div class="card">
+        <div class="card-title">New Batch</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Blood Group</label>
+            <select id="gen_blood">
+              <option value="">Select Blood Group</option>
+              <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+              <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+              <option value="ANY">Any / Mixed</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Quantity</label>
+            <input type="number" id="gen_qty" value="10" min="1" max="200" />
+          </div>
+        </div>
+        <div class="msg-bar" id="genMsg"></div>
+        <button class="btn btn-primary" onclick="generateTags()">🚀 Generate Tags</button>
+
+        <div class="gen-result" id="genResult">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-weight:700;font-size:13px;" id="genResultTitle">Generated Tags</div>
+            <button class="btn btn-green btn-sm" onclick="downloadCSV()">⬇️ Download CSV</button>
+          </div>
+          <div class="gen-tags-grid" id="genTagsGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="panel" id="panel-inventory">
+      <div class="panel-title">Inventory</div>
+      <div class="panel-sub">All tags in the system</div>
+      <div class="search-row">
+        <input class="search-input" id="invSearch" placeholder="Search by Tag ID or blood group..." oninput="filterInventory()" />
+        <select id="invFilter" onchange="filterInventory()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+          <option value="">All Status</option>
+          <option value="activated">Activated</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <button class="btn btn-secondary" onclick="loadInventory()">↺ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tag ID</th><th>Blood Group</th><th>Status</th><th>Activation Code</th><th>Created</th></tr></thead>
+          <tbody id="invTable"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="panel" id="panel-users">
+      <div class="panel-title">Registered Users</div>
+      <div class="panel-sub">All activated SafeTag profiles</div>
+      <div class="search-row">
+        <input class="search-input" id="userSearch" placeholder="Search by name, email, blood group..." oninput="filterUsers()" />
+        <button class="btn btn-secondary" onclick="loadUsers()">↺ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Tag ID</th><th>Blood</th><th>Emergency Contact</th><th>Email</th><th>Action</th></tr></thead>
+          <tbody id="usersTable"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="panel" id="panel-export">
+      <div class="panel-title">Export QR Codes</div>
+      <div class="panel-sub">Generate printable QR code images for tags</div>
+      <div class="card">
+        <div class="card-title">QR Export Options</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Filter by Blood Group</label>
+            <select id="exp_blood">
+              <option value="">All Blood Groups</option>
+              <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+              <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Status Filter</label>
+            <select id="exp_status">
+              <option value="inactive">Inactive (unactivated)</option>
+              <option value="activated">Activated</option>
+              <option value="">All</option>
+            </select>
+          </div>
+        </div>
+        <div class="msg-bar" id="expMsg"></div>
+        <button class="btn btn-primary" onclick="loadExportTags()">🔍 Load Tags</button>
+      </div>
+
+      <div id="expTagsSection" style="display:none;">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div class="card-title" style="margin-bottom:0;" id="expTagCount">0 tags found</div>
+            <button class="btn btn-green" onclick="openAllQRs()">🖨️ Open All QRs</button>
+          </div>
+          <div id="expQrGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://weulzmnlydabkjislotb.supabase.co";
+  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndldWx6bW5seWRhYmtqaXNsb3RiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNDIxODAsImV4cCI6MjA5NTcxODE4MH0.oEB_ulB09d3LjeMI-COiLd7_iPXqcXMmiSop-MmpNfo";
+
+  let allInventory = [], allUsers = [], genResults = [], expTags = [];
+  let accessToken = null;
+
+  // AUTH
+  async function login() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    const err = document.getElementById('loginErr');
+    err.style.display = 'none';
+
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { "apikey": SUPABASE_ANON, "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password: pass })
+    });
+    const data = await res.json();
+
+    if (data.access_token) {
+      accessToken = data.access_token;
+      localStorage.setItem('st_admin_token', accessToken);
+      document.getElementById('loginOverlay').style.display = 'none';
+      initDashboard();
+    } else {
+      err.textContent = data.error_description || 'Invalid credentials.';
+      err.style.display = 'block';
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('st_admin_token');
+    accessToken = null;
+    document.getElementById('loginOverlay').style.display = 'flex';
+  }
+
+  async function supabase(path, options = {}) {
+    const token = accessToken || SUPABASE_ANON;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      headers: {
+        "apikey": SUPABASE_ANON,
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "Prefer": options.prefer || "return=representation",
+        ...options.headers
+      },
+      ...options
+    });
+    try { return await res.json(); } catch { return null; }
+  }
+
+  // NAV
+  function showPanel(name, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById(`panel-${name}`).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'inventory') loadInventory();
+    if (name === 'users') loadUsers();
+  }
+
+  // DASHBOARD
+  async function initDashboard() {
+    const [tags, users] = await Promise.all([
+      supabase('tags?select=id,status,blood_group,created_at&order=created_at.desc'),
+      supabase('users?select=tag_id,name,blood,email,activated_at&order=activated_at.desc&limit=10')
+    ]);
+
+    const total = tags?.length || 0;
+    const active = tags?.filter(t => t.status === 'activated').length || 0;
+    const inactive = total - active;
+    const pct = total > 0 ? Math.round(active/total*100) : 0;
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statInactive').textContent = inactive;
+    document.getElementById('statPct').textContent = pct + '%';
+
+    // Blood breakdown
+    const bloodMap = {};
+    tags?.forEach(t => { bloodMap[t.blood_group] = (bloodMap[t.blood_group]||0) + 1; });
+    const bGrid = document.getElementById('bloodBreakdown');
+    bGrid.innerHTML = Object.entries(bloodMap).map(([bg, count]) => `
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--red);">${bg}</div>
+        <div style="font-size:20px;font-weight:700;">${count}</div>
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;">tags</div>
+      </div>
+    `).join('') || '<div class="empty-state" style="grid-column:1/-1;">No data</div>';
+
+    // Recent activations
+    const tbody = document.getElementById('recentTable');
+    tbody.innerHTML = users?.length ? users.map(u => `
+      <tr>
+        <td><span style="font-family:'Bebas Neue',sans-serif;color:var(--red);letter-spacing:1px;">${u.tag_id}</span></td>
+        <td>${u.name || '--'}</td>
+        <td><span class="badge badge-red">${u.blood || '--'}</span></td>
+        <td style="color:var(--muted);font-size:12px;">${u.email || '--'}</td>
+        <td style="color:var(--muted);font-size:12px;">${u.activated_at ? new Date(u.activated_at).toLocaleDateString('en-IN') : '--'}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="5" class="empty-state">No activations yet</td></tr>';
+  }
+
+  // GENERATE
+  function generateId() {
+    return Math.random().toString(36).substring(2,10).toUpperCase();
+  }
+  function generateCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+  function generatePin() {
+    return Math.floor(1000 + Math.random() * 9000).toString();
+  }
+
+  async function generateTags() {
+    const blood = document.getElementById('gen_blood').value;
+    const qty = parseInt(document.getElementById('gen_qty').value);
+    const msg = document.getElementById('genMsg');
+
+    if (!blood) { showMsg(msg, 'error', 'Please select a blood group.'); return; }
+    if (!qty || qty < 1 || qty > 200) { showMsg(msg, 'error', 'Enter quantity between 1 and 200.'); return; }
+
+    showMsg(msg, 'info', `Generating ${qty} tags...`);
+
+    // Fetch existing IDs to avoid duplicates
+    const existing = await supabase('tags?select=id,activation_code');
+    const existingIds = new Set(existing?.map(t => t.id));
+    const existingCodes = new Set(existing?.map(t => t.activation_code));
+
+    const batch = [];
+    while (batch.length < qty) {
+      const id = generateId();
+      const code = generateCode();
+      const pin = generatePin();
+      if (!existingIds.has(id) && !existingCodes.has(code)) {
+        batch.push({ id, blood_group: blood === 'ANY' ? 'ANY' : blood, activation_code: code, pin, status: 'inactive' });
+        existingIds.add(id);
+        existingCodes.add(code);
+      }
+    }
+
+    const res = await supabase('tags', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: JSON.stringify(batch)
+    });
+
+    showMsg(msg, 'success', `✅ ${qty} tags generated successfully!`);
+    genResults = batch;
+
+    const grid = document.getElementById('genTagsGrid');
+    grid.innerHTML = batch.map(t => `
+      <div class="gen-tag-item">
+        <div class="gen-tag-id">${t.id}</div>
+        <div class="gen-tag-code">Code: ${t.activation_code}</div>
+        <div class="gen-tag-code" style="color:var(--amber);">PIN: ${t.pin}</div>
+        <div class="gen-tag-code">${t.blood_group}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('genResultTitle').textContent = `${qty} Tags Generated`;
+    document.getElementById('genResult').style.display = 'block';
+  }
+
+  function downloadCSV() {
+    if (!genResults.length) return;
+    const rows = [['Tag ID','Blood Group','Activation Code','PIN','QR URL']];
+    genResults.forEach(t => rows.push([
+      t.id, t.blood_group, t.activation_code, t.pin,
+      `${window.location.origin}/index.html?id=${t.id}`
+    ]));
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = `safetag_batch_${Date.now()}.csv`;
+    a.click();
+  }
+
+  // INVENTORY
+  async function loadInventory() {
+    const data = await supabase('tags?select=*&order=created_at.desc');
+    allInventory = data || [];
+    renderInventory(allInventory);
+  }
+
+  function filterInventory() {
+    const q = document.getElementById('invSearch').value.toLowerCase();
+    const status = document.getElementById('invFilter').value;
+    let filtered = allInventory;
+    if (q) filtered = filtered.filter(t => t.id.toLowerCase().includes(q) || t.blood_group.toLowerCase().includes(q));
+    if (status) filtered = filtered.filter(t => t.status === status);
+    renderInventory(filtered);
+  }
+
+  function renderInventory(data) {
+    const tbody = document.getElementById('invTable');
+    tbody.innerHTML = data.length ? data.map(t => `
+      <tr>
+        <td><span style="font-family:'Bebas Neue',sans-serif;color:var(--red);letter-spacing:1px;">${t.id}</span></td>
+        <td><span class="badge badge-red">${t.blood_group}</span></td>
+        <td><span class="badge ${t.status==='activated'?'badge-green':'badge-muted'}">${t.status}</span></td>
+        <td style="font-family:monospace;color:var(--muted);">${t.activation_code}</td>
+        <td style="color:var(--muted);font-size:12px;">${t.created_at ? new Date(t.created_at).toLocaleDateString('en-IN') : '--'}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="5" class="empty-state">No tags found</td></tr>';
+  }
+
+  // USERS
+  async function loadUsers() {
+    const data = await supabase('users?select=*&order=activated_at.desc');
+    allUsers = data || [];
+    renderUsers(allUsers);
+  }
+
+  function filterUsers() {
+    const q = document.getElementById('userSearch').value.toLowerCase();
+    const filtered = allUsers.filter(u =>
+      (u.name||'').toLowerCase().includes(q) ||
+      (u.email||'').toLowerCase().includes(q) ||
+      (u.blood||'').toLowerCase().includes(q) ||
+      (u.tag_id||'').toLowerCase().includes(q)
+    );
+    renderUsers(filtered);
+  }
+
+  function renderUsers(data) {
+    const tbody = document.getElementById('usersTable');
+    tbody.innerHTML = data.length ? data.map(u => `
+      <tr>
+        <td style="font-weight:600;">${u.name || '--'}</td>
+        <td><span style="font-family:'Bebas Neue',sans-serif;color:var(--red);letter-spacing:1px;">${u.tag_id}</span></td>
+        <td><span class="badge badge-red">${u.blood || '--'}</span></td>
+        <td style="font-size:12px;">${u.contact1 || '--'} ${u.phone1 ? `<span style="color:var(--muted)">(${u.phone1})</span>` : ''}</td>
+        <td style="color:var(--muted);font-size:12px;">${u.email || '--'}</td>
+        <td><a href="index.html?id=${u.tag_id}" target="_blank" class="btn btn-secondary btn-sm">View</a></td>
+      </tr>
+    `).join('') : '<tr><td colspan="6" class="empty-state">No registered users yet</td></tr>';
+  }
+
+  // EXPORT QR
+  async function loadExportTags() {
+    const blood = document.getElementById('exp_blood').value;
+    const status = document.getElementById('exp_status').value;
+    const msg = document.getElementById('expMsg');
+
+    let query = 'tags?select=id,blood_group,activation_code';
+    const filters = [];
+    if (blood) filters.push(`blood_group=eq.${blood}`);
+    if (status) filters.push(`status=eq.${status}`);
+    if (filters.length) query += '&' + filters.join('&');
+
+    showMsg(msg, 'info', 'Loading tags...');
+    const data = await supabase(query);
+    expTags = data || [];
+
+    msg.style.display = 'none';
+    document.getElementById('expTagCount').textContent = `${expTags.length} tags found`;
+    document.getElementById('expTagsSection').style.display = 'block';
+
+    const base = `${window.location.origin}/${window.location.pathname.replace('admin.html','index.html')}`;
+    document.getElementById('expQrGrid').innerHTML = expTags.map(t => {
+      const url = `${base}?id=${t.id}`;
+      const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(url)}&size=200&margin=2&dark=ffffff&light=d32f2f`;
+      return `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
+          <img src="${qrUrl}" style="width:120px;height:120px;border-radius:8px;" />
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--red);margin-top:8px;letter-spacing:1px;">${t.id}</div>
+          <div style="font-size:11px;color:var(--muted);">${t.blood_group}</div>
+          <a href="${qrUrl}" download="${t.id}.png" class="btn btn-secondary btn-sm" style="margin-top:8px;display:inline-block;text-decoration:none;">⬇ Save</a>
+        </div>
+      `;
+    }).join('') || '<div class="empty-state">No tags matched filters</div>';
+  }
+
+  function openAllQRs() {
+    if (!expTags.length) return;
+    alert(`This will open ${expTags.length} QR code windows. Please allow popups.`);
+    const base = `${window.location.origin}/${window.location.pathname.replace('admin.html','index.html')}`;
+    expTags.forEach(t => {
+      const url = `https://quickchart.io/qr?text=${encodeURIComponent(base+'?id='+t.id)}&size=400&margin=3&dark=ffffff&light=d32f2f`;
+      window.open(url, '_blank');
+    });
+  }
+
+  function showMsg(el, type, text) {
+    el.className = `msg-bar ${type}`;
+    el.textContent = text;
+    el.style.display = 'block';
+  }
+
+  // AUTO LOGIN CHECK
+  window.addEventListener('load', () => {
+    const saved = localStorage.getItem('st_admin_token');
+    if (saved) {
+      accessToken = saved;
+      document.getElementById('loginOverlay').style.display = 'none';
+      initDashboard();
+    }
+  });
+</script>
+</body>
+</html>
